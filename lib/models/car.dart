@@ -9,6 +9,7 @@ class Car extends Vehicle {
   Car() : super();
 
   Car.full(
+    String id,
     String manufactureCompany,
     DateTime manufactureDate,
     String model,
@@ -22,6 +23,7 @@ class Car extends Vehicle {
     this._chairNum,
     this._isFurnitureLeather,
   ) : super.full(
+          id,
           manufactureCompany,
           manufactureDate,
           model,
@@ -51,6 +53,7 @@ class Car extends Vehicle {
   }
 
   factory Car.fromJson(Map<String, dynamic> json) => Car.full(
+        json['id'] ?? '',
         json['manufactureCompany'],
         DateTime.parse(json['manufactureDate']),
         json['model'],

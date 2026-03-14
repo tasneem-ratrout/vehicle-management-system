@@ -9,6 +9,7 @@ class Truck extends Vehicle {
   Truck() : super();
 
   Truck.full(
+    String id,
     String manufactureCompany,
     DateTime manufactureDate,
     String model,
@@ -22,6 +23,7 @@ class Truck extends Vehicle {
     this._freeWeight,
     this._fullWeight,
   ) : super.full(
+          id,
           manufactureCompany,
           manufactureDate,
           model,
@@ -43,11 +45,15 @@ class Truck extends Vehicle {
   @override
   Map<String, dynamic> toJson() {
     final base = super.toJson();
-    base.addAll({'freeWeight': _freeWeight, 'fullWeight': _fullWeight});
+    base.addAll({
+      'freeWeight': _freeWeight,
+      'fullWeight': _fullWeight,
+    });
     return base;
   }
 
   factory Truck.fromJson(Map<String, dynamic> json) => Truck.full(
+        json['id'] ?? '',
         json['manufactureCompany'],
         DateTime.parse(json['manufactureDate']),
         json['model'],

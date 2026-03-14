@@ -163,7 +163,6 @@ class _CarFormScreenState extends State<CarFormScreen> {
               ),
               const Divider(height: 28),
 
-              // Vehicle
               TextFormField(
                 controller: _lengthCtrl,
                 decoration: const InputDecoration(labelText: "Length (int)"),
@@ -185,7 +184,6 @@ class _CarFormScreenState extends State<CarFormScreen> {
               ),
               const Divider(height: 28),
 
-              // Car fields
               TextFormField(
                 controller: _chairNumCtrl,
                 decoration: const InputDecoration(labelText: "Chair Number (int)"),
@@ -200,7 +198,6 @@ class _CarFormScreenState extends State<CarFormScreen> {
               ),
               const Divider(height: 28),
 
-              // Engine
               TextFormField(
                 controller: _engManufactureCtrl,
                 decoration: const InputDecoration(labelText: "Engine Manufacture"),
@@ -253,6 +250,8 @@ class _CarFormScreenState extends State<CarFormScreen> {
                   if (!_formKey.currentState!.validate()) return;
 
                   final car = Car.full(
+                    widget.editCar?.id ??
+                        DateTime.now().millisecondsSinceEpoch.toString(),
                     _companyCtrl.text.trim(),
                     _manufactureDate,
                     _modelCtrl.text.trim(),

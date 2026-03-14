@@ -3,12 +3,13 @@ import 'engine.dart';
 import 'enums.dart';
 
 class Motorcycle extends Automobile {
-  int _tierDiameter = 0; // as in task wording
+  int _tierDiameter = 0;
   int _length = 0;
 
   Motorcycle() : super();
 
   Motorcycle.full(
+    String id,
     String manufactureCompany,
     DateTime manufactureDate,
     String model,
@@ -19,6 +20,7 @@ class Motorcycle extends Automobile {
     this._tierDiameter,
     this._length,
   ) : super.full(
+          id,
           manufactureCompany,
           manufactureDate,
           model,
@@ -37,11 +39,15 @@ class Motorcycle extends Automobile {
   @override
   Map<String, dynamic> toJson() {
     final base = super.toJson();
-    base.addAll({'tierDiameter': _tierDiameter, 'length': _length});
+    base.addAll({
+      'tierDiameter': _tierDiameter,
+      'length': _length,
+    });
     return base;
   }
 
   factory Motorcycle.fromJson(Map<String, dynamic> json) => Motorcycle.full(
+        json['id'] ?? '',
         json['manufactureCompany'],
         DateTime.parse(json['manufactureDate']),
         json['model'],

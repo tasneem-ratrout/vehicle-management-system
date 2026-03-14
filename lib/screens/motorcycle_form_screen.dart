@@ -66,8 +66,11 @@ class _MotorcycleFormScreenState extends State<MotorcycleFormScreen> {
     );
     if (picked != null) {
       setState(() {
-        if (isEngine) _engineDate = picked;
-        else _manufactureDate = picked;
+        if (isEngine) {
+          _engineDate = picked;
+        } else {
+          _manufactureDate = picked;
+        }
       });
     }
   }
@@ -217,6 +220,8 @@ class _MotorcycleFormScreenState extends State<MotorcycleFormScreen> {
                   if (!_formKey.currentState!.validate()) return;
 
                   final moto = Motorcycle.full(
+                    widget.editMotorcycle?.id ??
+                        DateTime.now().millisecondsSinceEpoch.toString(),
                     _companyCtrl.text.trim(),
                     _manufactureDate,
                     _modelCtrl.text.trim(),

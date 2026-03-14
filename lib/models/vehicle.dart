@@ -10,6 +10,7 @@ class Vehicle extends Automobile {
   Vehicle() : super();
 
   Vehicle.full(
+    String id,
     String manufactureCompany,
     DateTime manufactureDate,
     String model,
@@ -21,6 +22,7 @@ class Vehicle extends Automobile {
     this._width,
     this._color,
   ) : super.full(
+          id,
           manufactureCompany,
           manufactureDate,
           model,
@@ -41,11 +43,16 @@ class Vehicle extends Automobile {
   @override
   Map<String, dynamic> toJson() {
     final base = super.toJson();
-    base.addAll({'length': _length, 'width': _width, 'color': _color});
+    base.addAll({
+      'length': _length,
+      'width': _width,
+      'color': _color,
+    });
     return base;
   }
 
   factory Vehicle.fromJson(Map<String, dynamic> json) => Vehicle.full(
+        json['id'] ?? '',
         json['manufactureCompany'],
         DateTime.parse(json['manufactureDate']),
         json['model'],

@@ -2,6 +2,7 @@ import 'engine.dart';
 import 'enums.dart';
 
 class Automobile {
+  String _id = '';
   String _manufactureCompany = '';
   DateTime _manufactureDate = DateTime.now();
   String _model = '';
@@ -13,6 +14,7 @@ class Automobile {
   Automobile();
 
   Automobile.full(
+    this._id,
     this._manufactureCompany,
     this._manufactureDate,
     this._model,
@@ -22,6 +24,7 @@ class Automobile {
     this._bodySerialNum,
   );
 
+  String get id => _id;
   String get manufactureCompany => _manufactureCompany;
   DateTime get manufactureDate => _manufactureDate;
   String get model => _model;
@@ -30,6 +33,7 @@ class Automobile {
   GearType get gearType => _gearType;
   int get bodySerialNum => _bodySerialNum;
 
+  set id(String v) => _id = v;
   set manufactureCompany(String v) => _manufactureCompany = v;
   set manufactureDate(DateTime v) => _manufactureDate = v;
   set model(String v) => _model = v;
@@ -39,6 +43,7 @@ class Automobile {
   set bodySerialNum(int v) => _bodySerialNum = v;
 
   Map<String, dynamic> toJson() => {
+        'id': _id,
         'manufactureCompany': _manufactureCompany,
         'manufactureDate': _manufactureDate.toIso8601String(),
         'model': _model,
@@ -49,6 +54,7 @@ class Automobile {
       };
 
   factory Automobile.fromJson(Map<String, dynamic> json) => Automobile.full(
+        json['id'] ?? '',
         json['manufactureCompany'],
         DateTime.parse(json['manufactureDate']),
         json['model'],

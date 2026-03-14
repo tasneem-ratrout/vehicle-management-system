@@ -74,8 +74,11 @@ class _TruckFormScreenState extends State<TruckFormScreen> {
     );
     if (picked != null) {
       setState(() {
-        if (isEngine) _engineDate = picked;
-        else _manufactureDate = picked;
+        if (isEngine) {
+          _engineDate = picked;
+        } else {
+          _manufactureDate = picked;
+        }
       });
     }
   }
@@ -249,6 +252,8 @@ class _TruckFormScreenState extends State<TruckFormScreen> {
                   if (!_formKey.currentState!.validate()) return;
 
                   final truck = Truck.full(
+                    widget.editTruck?.id ??
+                        DateTime.now().millisecondsSinceEpoch.toString(),
                     _companyCtrl.text.trim(),
                     _manufactureDate,
                     _modelCtrl.text.trim(),

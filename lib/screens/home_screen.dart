@@ -1,55 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../models/car.dart';
-import '../models/truck.dart';
-import '../models/motorcycle.dart';
-import '../services/storage_service.dart';
+import '../bloc/vehicle/vehicle_bloc.dart';
+import '../bloc/vehicle/vehicle_state.dart';
 import '../services/print_helpers.dart';
-
 import 'cars_screen.dart';
-import 'trucks_screen.dart';
 import 'motorcycles_screen.dart';
+import 'trucks_screen.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  List<Car> cars = [];
-  List<Truck> trucks = [];
-  List<Motorcycle> motorcycles = [];
-
-  @override
-  void initState() {
-    super.initState();
-    loadData();
-  }
-
-  Future<void> loadData() async {
-    final data = await StorageService.loadData();
-    setState(() {
-      cars = data['cars'] as List<Car>;
-      trucks = data['trucks'] as List<Truck>;
-      motorcycles = data['motorcycles'] as List<Motorcycle>;
-    });
-  }
-
-  Future<void> saveAll() async {
-    await StorageService.saveData(
-      cars: cars,
-      trucks: trucks,
-      motorcycles: motorcycles,
-    );
-  }
-
-  void _showPrintAllDialog() {
+  void _showPrintAllDialog(
+    BuildContext context, {
+    required List cars,
+    required List trucks,
+    required List motorcycles,
+  }) {
     final text = printAll(
-      cars: cars,
-      trucks: trucks,
-      motorcycles: motorcycles,
+      cars: cars.cast(),
+      trucks: trucks.cast(),
+      motorcycles: motorcycles.cast(),
     );
 
     showDialog(
@@ -74,107 +45,96 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        actions: [
-          IconButton(
-            tooltip: "Print All",
-            icon: const Icon(Icons.print),
-            onPressed: _showPrintAllDialog,
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+    return BlocBuilder<VehicleBloc, VehicleState>(
+      builder: (context, state) {
+        if (state is VehicleLoading || state is VehicleInitial) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
 
-              const Text(
-                "Vehicle Management System",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+        if (state is VehicleError) {
+          return Scaffold(
+            body: Center(child: Text(state.message)),
+          );
+        }
 
-              const SizedBox(height: 40),
+        final loaded = state as VehicleLoaded;
 
-              SizedBox(
-                width: 250,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => CarsScreen(
-                          cars: cars,
-                          onCarsChanged: (newCars) async {
-                            setState(() => cars = newCars);
-                            await saveAll();
-                          },
-                        ),
-                      ),
-                    );
-                    await loadData();
-                  },
-                  child: Text("Cars (${cars.length})"),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              SizedBox(
-                width: 250,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => TrucksScreen(
-                          trucks: trucks,
-                          onTrucksChanged: (newTrucks) async {
-                            setState(() => trucks = newTrucks);
-                            await saveAll();
-                          },
-                        ),
-                      ),
-                    );
-                    await loadData();
-                  },
-                  child: Text("Trucks (${trucks.length})"),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              SizedBox(
-                width: 250,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => MotorcyclesScreen(
-                          motorcycles: motorcycles,
-                          onMotorcyclesChanged: (newMotos) async {
-                            setState(() => motorcycles = newMotos);
-                            await saveAll();
-                          },
-                        ),
-                      ),
-                    );
-                    await loadData();
-                  },
-                  child: Text("Motorcycles (${motorcycles.length})"),
+        return Scaffold(
+          appBar: AppBar(
+            actions: [
+              IconButton(
+                tooltip: "Print All",
+                icon: const Icon(Icons.print),
+                onPressed: () => _showPrintAllDialog(
+                  context,
+                  cars: loaded.cars,
+                  trucks: loaded.trucks,
+                  motorcycles: loaded.motorcycles,
                 ),
               ),
             ],
           ),
-        ),
-      ),
+          body: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    "Vehicle Management System",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  SizedBox(
+                    width: 250,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const CarsScreen()),
+                        );
+                      },
+                      child: Text("Cars (${loaded.cars.length})"),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: 250,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const TrucksScreen()),
+                        );
+                      },
+                      child: Text("Trucks (${loaded.trucks.length})"),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: 250,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const MotorcyclesScreen()),
+                        );
+                      },
+                      child: Text("Motorcycles (${loaded.motorcycles.length})"),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
