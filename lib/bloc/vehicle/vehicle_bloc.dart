@@ -9,7 +9,7 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
   Timer? _timer;
 
   VehicleBloc(this.repository) : super(VehicleInitial()) {
-    
+
     _timer = Timer.periodic(const Duration(seconds: 30), (_) {
       add(LoadVehiclesEvent());
     });
@@ -25,12 +25,10 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
           motorcycles: repository.motorcycles,
         ));
       } on TimeoutException {
-        emit(VehicleError("Timeout Error"));
-      } on TimeoutException {
-  emit(TimeoutErrorState());
-} catch (e) {
-  emit(NetworkErrorState());
-}
+        emit(TimeoutErrorState());
+      } catch (e) {
+        emit(NetworkErrorState());
+      }
     });
 
     on<AddVehicleEvent>((event, emit) async {
@@ -43,7 +41,7 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
           motorcycles: repository.motorcycles,
         ));
       } catch (e) {
-        emit(VehicleError(e.toString()));
+        emit(NetworkErrorState());
       }
     });
 
@@ -57,7 +55,7 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
           motorcycles: repository.motorcycles,
         ));
       } catch (e) {
-        emit(VehicleError(e.toString()));
+        emit(NetworkErrorState());
       }
     });
 
@@ -71,7 +69,7 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
           motorcycles: repository.motorcycles,
         ));
       } catch (e) {
-        emit(VehicleError(e.toString()));
+        emit(NetworkErrorState());
       }
     });
 
@@ -85,7 +83,7 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
           motorcycles: repository.motorcycles,
         ));
       } catch (e) {
-        emit(VehicleError(e.toString()));
+        emit(NetworkErrorState());
       }
     });
   }
