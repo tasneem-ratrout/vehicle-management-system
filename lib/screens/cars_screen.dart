@@ -9,6 +9,7 @@ import '../models/enums.dart';
 import '../services/print_helpers.dart';
 import 'car_form_screen.dart';
 
+
 class CarsScreen extends StatefulWidget {
   const CarsScreen({super.key});
 
@@ -88,14 +89,31 @@ class _CarsScreenState extends State<CarsScreen> {
           );
         }
 
-        if (state is VehicleError) {
-          return Scaffold(
-            appBar: AppBar(title: const Text("Cars")),
-            body: Center(child: Text(state.message)),
-          );
-        }
+       if (state is NetworkErrorState) {
+  return const Scaffold(
+    body: Center(child: Text("No Internet")),
+  );
+}
 
-        final loaded = state as VehicleLoaded;
+if (state is TimeoutErrorState) {
+  return const Scaffold(
+    body: Center(child: Text("Timeout")),
+  );
+}
+
+if (state is ServerErrorState) {
+  return const Scaffold(
+    body: Center(child: Text("Server Error")),
+  );
+}
+
+if (state is! VehicleLoaded) {
+  return const Scaffold(
+    body: Center(child: CircularProgressIndicator()),
+  );
+}
+
+       final loaded = state;
         final allCars = loaded.cars;
         final list = _filtered(allCars);
 
@@ -210,82 +228,87 @@ class _CarsScreenState extends State<CarsScreen> {
                 ),
                 const SizedBox(height: 10),
                 Expanded(
-                  child: list.isEmpty
-                      ? const Center(child: Text("No results / No cars yet."))
-                      : ListView.builder(
-                          itemCount: list.length,
-                          itemBuilder: (_, i) {
-                            final c = list[i];
+  child: list.isEmpty
+      ? const Center(child: Text("No results / No cars yet."))
+      : RefreshIndicator(
+          onRefresh: () async {
+            context.read<VehicleBloc>().add(LoadVehiclesEvent());
+          },
+          child: ListView.builder(
+            itemCount: list.length,
+            itemBuilder: (_, i) {
+              final c = list[i];
 
-                            return Card(
-                              child: ListTile(
-                                title: Text("Plate: ${c.plateNum} | ${c.model}"),
-                                subtitle: Text(
-                                  "${c.manufactureCompany} • Date: ${c.manufactureDate.toLocal().toString().split(' ')[0]}",
-                                ),
-                                onTap: () {
-                                  final text = printCar(c);
-                                  showDialog(
-                                    context: context,
-                                    builder: (_) => AlertDialog(
-                                      title: const Text("Car Details"),
-                                      content: SizedBox(
-                                        width: 600,
-                                        child: SingleChildScrollView(child: Text(text)),
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => Navigator.pop(context),
-                                          child: const Text("Close"),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                                trailing: Wrap(
-                                  spacing: 6,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.edit),
-                                      onPressed: () async {
-                                        final edited = await Navigator.push<Car>(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => CarFormScreen(editCar: c),
-                                          ),
-                                        );
-
-                                        if (edited != null && mounted) {
-                                          context
-                                              .read<VehicleBloc>()
-                                              .add(UpdateVehicleEvent(edited));
-                                          context
-                                              .read<VehicleBloc>()
-                                              .add(SaveVehiclesEvent());
-                                        }
-                                      },
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete),
-                                      onPressed: () {
-                                        context.read<VehicleBloc>().add(
-                                              DeleteVehicleEvent(
-                                                c.id,
-                                                VehicleType.car,
-                                              ),
-                                            );
-                                        context.read<VehicleBloc>().add(
-                                              SaveVehiclesEvent(),
-                                            );
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
+              return Card(
+                child: ListTile(
+                  title: Text("Plate: ${c.plateNum} | ${c.model}"),
+                  subtitle: Text(
+                    "${c.manufactureCompany} • Date: ${c.manufactureDate.toLocal().toString().split(' ')[0]}",
+                  ),
+                  onTap: () {
+                    final text = printCar(c);
+                    showDialog(
+                      context: context,
+                      builder: (_) => AlertDialog(
+                        title: const Text("Car Details"),
+                        content: SizedBox(
+                          width: 600,
+                          child: SingleChildScrollView(child: Text(text)),
                         ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text("Close"),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  trailing: Wrap(
+                    spacing: 6,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () async {
+                          final edited = await Navigator.push<Car>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => CarFormScreen(editCar: c),
+                            ),
+                          );
+
+                          if (edited != null && mounted) {
+                            context
+                                .read<VehicleBloc>()
+                                .add(UpdateVehicleEvent(edited));
+                            context
+                                .read<VehicleBloc>()
+                                .add(SaveVehiclesEvent());
+                          }
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () {
+                          context.read<VehicleBloc>().add(
+                                DeleteVehicleEvent(
+                                  c.id,
+                                  VehicleType.car,
+                                ),
+                              );
+                          context.read<VehicleBloc>().add(
+                                SaveVehiclesEvent(),
+                              );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
+              );
+            },
+          ),
+        ),
+)
               ],
             ),
           ),

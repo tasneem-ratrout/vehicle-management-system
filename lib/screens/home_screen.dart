@@ -7,7 +7,7 @@ import '../services/print_helpers.dart';
 import 'cars_screen.dart';
 import 'motorcycles_screen.dart';
 import 'trucks_screen.dart';
-
+import 'dashboard_screen.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -53,11 +53,23 @@ class HomeScreen extends StatelessWidget {
           );
         }
 
-        if (state is VehicleError) {
-          return Scaffold(
-            body: Center(child: Text(state.message)),
-          );
-        }
+       if (state is NetworkErrorState) {
+  return const Scaffold(
+    body: Center(child: Text("No Internet Connection")),
+  );
+}
+
+if (state is TimeoutErrorState) {
+  return const Scaffold(
+    body: Center(child: Text("Request Timeout")),
+  );
+}
+
+if (state is ServerErrorState) {
+  return const Scaffold(
+    body: Center(child: Text("Server Error")),
+  );
+}
 
         final loaded = state as VehicleLoaded;
 
@@ -129,6 +141,21 @@ class HomeScreen extends StatelessWidget {
                       child: Text("Motorcycles (${loaded.motorcycles.length})"),
                     ),
                   ),
+
+                  const SizedBox(height: 20),
+
+SizedBox(
+  width: 250,
+  child: ElevatedButton(
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const DashboardScreen()),
+      );
+    },
+    child: const Text("Dashboard"),
+  ),
+),
                 ],
               ),
             ),

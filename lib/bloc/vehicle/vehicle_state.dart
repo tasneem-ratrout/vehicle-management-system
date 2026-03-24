@@ -20,7 +20,8 @@ class VehicleLoaded extends VehicleState {
   });
 }
 
-class VehicleError extends VehicleState {
-  final String message;
-  VehicleError(this.message);
-}
+class NetworkErrorState extends VehicleState {}
+
+class ServerErrorState extends VehicleState {}
+
+class TimeoutErrorState extends VehicleState {}

@@ -9,6 +9,7 @@ import '../models/motorcycle.dart';
 import '../services/print_helpers.dart';
 import 'motorcycle_form_screen.dart';
 
+
 class MotorcyclesScreen extends StatefulWidget {
   const MotorcyclesScreen({super.key});
 
@@ -88,14 +89,32 @@ class _MotorcyclesScreenState extends State<MotorcyclesScreen> {
           );
         }
 
-        if (state is VehicleError) {
-          return Scaffold(
-            appBar: AppBar(title: const Text("Motorcycles")),
-            body: Center(child: Text(state.message)),
-          );
-        }
+       if (state is NetworkErrorState) {
+  return const Scaffold(
+    body: Center(child: Text("No Internet")),
+  );
+}
 
-        final loaded = state as VehicleLoaded;
+if (state is TimeoutErrorState) {
+  return const Scaffold(
+    body: Center(child: Text("Timeout")),
+  );
+}
+
+if (state is ServerErrorState) {
+  return const Scaffold(
+    body: Center(child: Text("Server Error")),
+  );
+}
+
+
+
+if (state is! VehicleLoaded) {
+  return const Scaffold(
+    body: Center(child: CircularProgressIndicator()),
+  );
+}
+        final loaded = state;;
         final allMotos = loaded.motorcycles;
         final list = _filtered(allMotos);
 
@@ -210,78 +229,83 @@ class _MotorcyclesScreenState extends State<MotorcyclesScreen> {
                 ),
                 const SizedBox(height: 10),
                 Expanded(
-                  child: list.isEmpty
-                      ? const Center(child: Text("No results / No motorcycles yet."))
-                      : ListView.builder(
-                          itemCount: list.length,
-                          itemBuilder: (_, i) {
-                            final m = list[i];
+  child: list.isEmpty
+      ? const Center(child: Text("No results / No motorcycles yet."))
+      : RefreshIndicator(
+          onRefresh: () async {
+            context.read<VehicleBloc>().add(LoadVehiclesEvent());
+          },
+          child: ListView.builder(
+            itemCount: list.length,
+            itemBuilder: (_, i) {
+              final m = list[i];
 
-                            return Card(
-                              child: ListTile(
-                                title: Text("Plate: ${m.plateNum} | ${m.model}"),
-                                subtitle: Text(
-                                  "${m.manufactureCompany} • Date: ${m.manufactureDate.toLocal().toString().split(' ')[0]}",
-                                ),
-                                onTap: () {
-                                  final text = printMotorcycle(m);
-                                  showDialog(
-                                    context: context,
-                                    builder: (_) => AlertDialog(
-                                      title: const Text("Motorcycle Details"),
-                                      content: SizedBox(
-                                        width: 600,
-                                        child: SingleChildScrollView(child: Text(text)),
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => Navigator.pop(context),
-                                          child: const Text("Close"),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                                trailing: Wrap(
-                                  spacing: 6,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.edit),
-                                      onPressed: () async {
-                                        final edited = await Navigator.push<Motorcycle>(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => MotorcycleFormScreen(
-                                              editMotorcycle: m,
-                                            ),
-                                          ),
-                                        );
-
-                                        if (edited != null && mounted) {
-                                          context.read<VehicleBloc>().add(UpdateVehicleEvent(edited));
-                                          context.read<VehicleBloc>().add(SaveVehiclesEvent());
-                                        }
-                                      },
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete),
-                                      onPressed: () {
-                                        context.read<VehicleBloc>().add(
-                                              DeleteVehicleEvent(
-                                                m.id,
-                                                VehicleType.motorcycle,
-                                              ),
-                                            );
-                                        context.read<VehicleBloc>().add(SaveVehiclesEvent());
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
+              return Card(
+                child: ListTile(
+                  title: Text("Plate: ${m.plateNum} | ${m.model}"),
+                  subtitle: Text(
+                    "${m.manufactureCompany} • Date: ${m.manufactureDate.toLocal().toString().split(' ')[0]}",
+                  ),
+                  onTap: () {
+                    final text = printMotorcycle(m);
+                    showDialog(
+                      context: context,
+                      builder: (_) => AlertDialog(
+                        title: const Text("Motorcycle Details"),
+                        content: SizedBox(
+                          width: 600,
+                          child: SingleChildScrollView(child: Text(text)),
                         ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text("Close"),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  trailing: Wrap(
+                    spacing: 6,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () async {
+                          final edited = await Navigator.push<Motorcycle>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => MotorcycleFormScreen(
+                                editMotorcycle: m,
+                              ),
+                            ),
+                          );
+
+                          if (edited != null && mounted) {
+                            context.read<VehicleBloc>().add(UpdateVehicleEvent(edited));
+                            context.read<VehicleBloc>().add(SaveVehiclesEvent());
+                          }
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () {
+                          context.read<VehicleBloc>().add(
+                                DeleteVehicleEvent(
+                                  m.id,
+                                  VehicleType.motorcycle,
+                                ),
+                              );
+                          context.read<VehicleBloc>().add(SaveVehiclesEvent());
+                        },
+                      ),
+                    ],
+                  ),
                 ),
+              );
+            },
+          ),
+        ),
+)
               ],
             ),
           ),

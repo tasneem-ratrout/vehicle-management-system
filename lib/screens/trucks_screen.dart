@@ -88,14 +88,33 @@ class _TrucksScreenState extends State<TrucksScreen> {
           );
         }
 
-        if (state is VehicleError) {
-          return Scaffold(
-            appBar: AppBar(title: const Text("Trucks")),
-            body: Center(child: Text(state.message)),
-          );
-        }
+        if (state is NetworkErrorState) {
+  return const Scaffold(
+    body: Center(child: Text("No Internet")),
+  );
+}
 
-        final loaded = state as VehicleLoaded;
+if (state is TimeoutErrorState) {
+  return const Scaffold(
+    body: Center(child: Text("Timeout")),
+  );
+}
+
+if (state is ServerErrorState) {
+  return const Scaffold(
+    body: Center(child: Text("Server Error")),
+  );
+}
+
+
+
+       if (state is! VehicleLoaded) {
+  return const Scaffold(
+    body: Center(child: CircularProgressIndicator()),
+  );
+}
+
+final loaded = state;
         final allTrucks = loaded.trucks;
         final list = _filtered(allTrucks);
 
@@ -210,76 +229,81 @@ class _TrucksScreenState extends State<TrucksScreen> {
                 ),
                 const SizedBox(height: 10),
                 Expanded(
-                  child: list.isEmpty
-                      ? const Center(child: Text("No results / No trucks yet."))
-                      : ListView.builder(
-                          itemCount: list.length,
-                          itemBuilder: (_, i) {
-                            final t = list[i];
+  child: list.isEmpty
+      ? const Center(child: Text("No results / No trucks yet."))
+      : RefreshIndicator(
+          onRefresh: () async {
+            context.read<VehicleBloc>().add(LoadVehiclesEvent());
+          },
+          child: ListView.builder(
+            itemCount: list.length,
+            itemBuilder: (_, i) {
+              final t = list[i];
 
-                            return Card(
-                              child: ListTile(
-                                title: Text("Plate: ${t.plateNum} | ${t.model}"),
-                                subtitle: Text(
-                                  "${t.manufactureCompany} • Date: ${t.manufactureDate.toLocal().toString().split(' ')[0]}",
-                                ),
-                                onTap: () {
-                                  final text = printTruck(t);
-                                  showDialog(
-                                    context: context,
-                                    builder: (_) => AlertDialog(
-                                      title: const Text("Truck Details"),
-                                      content: SizedBox(
-                                        width: 600,
-                                        child: SingleChildScrollView(child: Text(text)),
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => Navigator.pop(context),
-                                          child: const Text("Close"),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                                trailing: Wrap(
-                                  spacing: 6,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.edit),
-                                      onPressed: () async {
-                                        final edited = await Navigator.push<Truck>(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => TruckFormScreen(editTruck: t),
-                                          ),
-                                        );
-
-                                        if (edited != null && mounted) {
-                                          context.read<VehicleBloc>().add(UpdateVehicleEvent(edited));
-                                          context.read<VehicleBloc>().add(SaveVehiclesEvent());
-                                        }
-                                      },
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete),
-                                      onPressed: () {
-                                        context.read<VehicleBloc>().add(
-                                              DeleteVehicleEvent(
-                                                t.id,
-                                                VehicleType.truck,
-                                              ),
-                                            );
-                                        context.read<VehicleBloc>().add(SaveVehiclesEvent());
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
+              return Card(
+                child: ListTile(
+                  title: Text("Plate: ${t.plateNum} | ${t.model}"),
+                  subtitle: Text(
+                    "${t.manufactureCompany} • Date: ${t.manufactureDate.toLocal().toString().split(' ')[0]}",
+                  ),
+                  onTap: () {
+                    final text = printTruck(t);
+                    showDialog(
+                      context: context,
+                      builder: (_) => AlertDialog(
+                        title: const Text("Truck Details"),
+                        content: SizedBox(
+                          width: 600,
+                          child: SingleChildScrollView(child: Text(text)),
                         ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text("Close"),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  trailing: Wrap(
+                    spacing: 6,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () async {
+                          final edited = await Navigator.push<Truck>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => TruckFormScreen(editTruck: t),
+                            ),
+                          );
+
+                          if (edited != null && mounted) {
+                            context.read<VehicleBloc>().add(UpdateVehicleEvent(edited));
+                            context.read<VehicleBloc>().add(SaveVehiclesEvent());
+                          }
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () {
+                          context.read<VehicleBloc>().add(
+                                DeleteVehicleEvent(
+                                  t.id,
+                                  VehicleType.truck,
+                                ),
+                              );
+                          context.read<VehicleBloc>().add(SaveVehiclesEvent());
+                        },
+                      ),
+                    ],
+                  ),
                 ),
+              );
+            },
+          ),
+        ),
+)
               ],
             ),
           ),
