@@ -9,6 +9,47 @@ import 'package:vehicle_management/models/car.dart';
 import 'package:vehicle_management/models/engine.dart';
 import 'package:vehicle_management/models/enums.dart';
 import 'package:vehicle_management/repository/vehicle_repository.dart';
+import 'package:vehicle_management/services/vehicle_api_service.dart';
+
+class FakeVehicleApiService extends VehicleApiService {
+  FakeVehicleApiService();
+
+  final List<Map<String, dynamic>> _store = [];
+  int _id = 1;
+
+  @override
+  Future<List<Map<String, dynamic>>> getAllVehiclesPaginated({
+    int pageSize = 20,
+  }) async {
+    return List<Map<String, dynamic>>.from(_store);
+  }
+
+  @override
+  Future<Map<String, dynamic>> addVehicle(Map<String, dynamic> data) async {
+    final copy = Map<String, dynamic>.from(data);
+    copy['id'] = copy['id'].toString().isEmpty ? '${_id++}' : copy['id'];
+    _store.add(copy);
+    return copy;
+  }
+
+  @override
+  Future<Map<String, dynamic>> updateVehicle(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
+    final i = _store.indexWhere((e) => e['id'].toString() == id);
+    final copy = Map<String, dynamic>.from(data)..['id'] = id;
+    if (i != -1) {
+      _store[i] = copy;
+    }
+    return copy;
+  }
+
+  @override
+  Future<void> deleteVehicle(String id) async {
+    _store.removeWhere((e) => e['id'].toString() == id);
+  }
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -16,10 +57,12 @@ void main() {
   group('VehicleBloc', () {
     late VehicleRepository repository;
     late VehicleBloc bloc;
+    late FakeVehicleApiService api;
 
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
-      repository = VehicleRepository();
+      api = FakeVehicleApiService();
+      repository = VehicleRepository(apiService: api);
       bloc = VehicleBloc(repository);
     });
 

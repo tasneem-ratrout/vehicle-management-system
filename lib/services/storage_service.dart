@@ -9,6 +9,7 @@ class StorageService {
   static const String carKey = 'car_list';
   static const String truckKey = 'truck_list';
   static const String motorcycleKey = 'motorcycle_list';
+  static const String vehicleCacheKey = 'vehicle_cache_list';
 
   static Future<void> saveData({
     required List<Car> cars,
@@ -19,8 +20,9 @@ class StorageService {
 
     final carJson = jsonEncode(cars.map((c) => c.toJson()).toList());
     final truckJson = jsonEncode(trucks.map((t) => t.toJson()).toList());
-    final motorcycleJson =
-        jsonEncode(motorcycles.map((m) => m.toJson()).toList());
+    final motorcycleJson = jsonEncode(
+      motorcycles.map((m) => m.toJson()).toList(),
+    );
 
     await prefs.setString(carKey, carJson);
     await prefs.setString(truckKey, truckJson);
@@ -36,26 +38,49 @@ class StorageService {
 
     final List<Car> cars = carJson != null
         ? (jsonDecode(carJson) as List)
-            .map((e) => Car.fromJson(e as Map<String, dynamic>))
-            .toList()
+              .map((e) => Car.fromJson(e as Map<String, dynamic>))
+              .toList()
         : [];
 
     final List<Truck> trucks = truckJson != null
         ? (jsonDecode(truckJson) as List)
-            .map((e) => Truck.fromJson(e as Map<String, dynamic>))
-            .toList()
+              .map((e) => Truck.fromJson(e as Map<String, dynamic>))
+              .toList()
         : [];
 
     final List<Motorcycle> motorcycles = motorcycleJson != null
         ? (jsonDecode(motorcycleJson) as List)
-            .map((e) => Motorcycle.fromJson(e as Map<String, dynamic>))
-            .toList()
+              .map((e) => Motorcycle.fromJson(e as Map<String, dynamic>))
+              .toList()
         : [];
 
-    return {
-      'cars': cars,
-      'trucks': trucks,
-      'motorcycles': motorcycles,
-    };
+    return {'cars': cars, 'trucks': trucks, 'motorcycles': motorcycles};
+  }
+
+  static Future<void> saveRawVehicleCache(
+    List<Map<String, dynamic>> vehicles,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = jsonEncode(vehicles);
+    await prefs.setString(vehicleCacheKey, raw);
+  }
+
+  static Future<List<Map<String, dynamic>>> loadRawVehicleCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(vehicleCacheKey);
+
+    if (raw == null || raw.isEmpty) {
+      return [];
+    }
+
+    final decoded = jsonDecode(raw);
+    if (decoded is! List) {
+      return [];
+    }
+
+    return decoded
+        .whereType<Map>()
+        .map((e) => e.map((k, v) => MapEntry(k.toString(), v)))
+        .toList();
   }
 }

@@ -1,5 +1,24 @@
 # 🚀 API Upgrade 
 
+## 🔧 Mock API Setup
+
+The app now uses Dio with a real HTTP layer and expects a mock API host that exposes:
+
+- GET `/vehicles` (paginated)
+- POST `/vehicles`
+- PUT `/vehicles/:id`
+- DELETE `/vehicles/:id`
+
+Set the API host using Dart define:
+
+```bash
+flutter run --dart-define=VEHICLE_API_BASE_URL=https://your-mock-api-host/api/v1
+```
+
+You can use a free provider like MockAPI and create a `vehicles` resource with the same JSON fields used by your models.
+
+If no `VEHICLE_API_BASE_URL` is provided, the app now uses a built-in in-memory mock dataset so it can run without showing a startup server error.
+
 ## 📌 Overview
 This branch introduces a major upgrade to the Vehicle Management System by transitioning from local storage to a real API-based architecture.
 

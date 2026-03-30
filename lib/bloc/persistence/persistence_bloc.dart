@@ -17,6 +17,11 @@ class PersistenceBloc extends Bloc<PersistenceEvent, PersistenceState> {
     on<PersistSaveEvent>((event, emit) async {
       emit(PersistenceSaving());
       try {
+        await StorageService.saveData(
+          cars: event.cars,
+          trucks: event.trucks,
+          motorcycles: event.motorcycles,
+        );
         final data = await StorageService.loadData();
         emit(PersistenceLoaded(data));
       } catch (e) {
