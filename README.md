@@ -4,7 +4,7 @@
 
 The app now uses Dio with a real HTTP layer and expects a mock API host that exposes:
 
-- GET `/vehicles` (paginated)
+- GET `/vehicles` 
 - POST `/vehicles`
 - PUT `/vehicles/:id`
 - DELETE `/vehicles/:id`
