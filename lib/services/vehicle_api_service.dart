@@ -84,15 +84,12 @@ class VehicleApiService {
 
     try {
       final res = await _dio.get(
-        '/vehicles',
-        queryParameters: {
-          '_page': page,
-          '_limit': limit,
-          // Keep compatibility with APIs that use page/limit style.
-          'page': page,
-          'limit': limit,
-        },
-      );
+  '/vehicles',
+  queryParameters: {
+    'page': page,
+    'limit': limit,
+  },
+);
 
       return _extractVehicleList(res.data);
     } on DioException catch (e) {
