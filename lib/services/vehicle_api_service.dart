@@ -23,7 +23,6 @@ class VehicleApiService {
           dio ??
           Dio(
             BaseOptions(
-              // Replace with your own mock API host that exposes /vehicles.
               baseUrl: const String.fromEnvironment(
                 'VEHICLE_API_BASE_URL',
                 defaultValue: 'https://example.mockapi.io/api/v1',
@@ -44,28 +43,7 @@ class VehicleApiService {
   Future<List<Map<String, dynamic>>> getAllVehiclesPaginated({
     int pageSize = _defaultPageSize,
   }) async {
-    final all = <Map<String, dynamic>>[];
-    var page = 1;
-
-    while (true) {
-      final batch = await getVehicles(page: page, limit: pageSize);
-      if (batch.isEmpty) {
-        break;
-      }
-
-      all.addAll(batch);
-
-      if (batch.length < pageSize) {
-        break;
-      }
-
-      page++;
-      if (page > 500) {
-        break;
-      }
-    }
-
-    return all;
+    return await getVehicles();
   }
 
   Future<List<Map<String, dynamic>>> getVehicles({
@@ -83,14 +61,7 @@ class VehicleApiService {
     }
 
     try {
-      final res = await _dio.get(
-  '/vehicles',
-  queryParameters: {
-    'page': page,
-    'limit': limit,
-  },
-);
-
+      final res = await _dio.get('/vehicles');
       return _extractVehicleList(res.data);
     } on DioException catch (e) {
       throw _mapDioException(e);
@@ -190,9 +161,11 @@ class VehicleApiService {
       case DioExceptionType.receiveTimeout:
       case DioExceptionType.sendTimeout:
         return ApiTimeoutException();
+
       case DioExceptionType.badResponse:
         final code = e.response?.statusCode;
         return ApiServerException('Server error', statusCode: code);
+
       case DioExceptionType.connectionError:
       case DioExceptionType.unknown:
       case DioExceptionType.badCertificate:
